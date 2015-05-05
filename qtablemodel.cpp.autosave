@@ -1,0 +1,110 @@
+#include "qtablemodel.h"
+#include <QSize>
+#include <QBrush>
+#include <QMessageBox>
+
+QTableModel::QTableModel(QObject *parent) :
+    QAbstractTableModel(parent),
+    _titleHeight(25)
+{
+    /*_record << TelephoneDirectoryRecord("+375 (29) 600 10 10", "Мобильный", "Велком")
+            << TelephoneDirectoryRecord("+375 (29) 500 10 10", "Мобильный", "МТС")
+            << TelephoneDirectoryRecord("+375 (17) 200 10 10", "Городской", "Белтелеком");*/
+
+    _title << TelephoneDirectoryTitle("")
+           << TelephoneDirectoryTitle("Номер")
+           << TelephoneDirectoryTitle("Тип")
+           << TelephoneDirectoryTitle("Комментарий");
+    
+}
+
+int QTableModel::rowCount(const QModelIndex &parent) const
+{
+    return _record.size();
+}
+
+int QTableModel::columnCount(const QModelIndex &parent) const
+{
+    return _title.size();
+}
+
+QVariant QTableModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        if      (index.column() == 1) return _record.at(index.row()).getTelephone();
+        else if (index.column() == 2) return _record.at(index.row()).getType();
+        else if (index.column() == 3) return _record.at(index.row()).getComment();
+    }
+
+    return QVariant();
+}
+
+QVariant QTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::DisplayRole)
+    {
+        if (orientation == Qt::Horizontal)
+            return _title.at(section).getTitle();
+        else if (orientation == Qt::Vertical)
+            return (section + 1);
+    }
+    else if (role == Qt::SizeHintRole)
+    {
+        if (orientation == Qt::Horizontal)
+        {
+            if      (section == 0) return QSize(0, getTitleHeight());
+            else if (section == 1) return QSize(0, getTitleHeight());
+            else if (section == 2) return QSize(0, getTitleHeight());
+            else if (section == 3) return QSize(0, getTitleHeight());
+        }
+    }
+
+    return QVariant();
+}
+
+bool QTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (role == Qt::EditRole)
+    {
+        if      (index.column() == 1) _record[index.row()].setTelephone(value.toString());
+        else if (index.column() == 2) _record[index.row()].setType(value.toString());
+        else if (index.column() == 3) _record[index.row()].setComment(value.toString());
+    }
+
+    return true;
+}
+
+Qt::ItemFlags QTableModel::flags(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return Qt::NoItemFlags;
+
+    if (index.column() >= 1 && index.column() <= 3)
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+
+    return Qt::NoItemFlags;
+}
+
+void QTableModel::setTitleHeight(const int &titleHeight)
+{
+    _titleHeight = titleHeight;
+}
+
+const int QTableModel::getTitleHeight() const
+{
+    return _titleHeight;
+}
+
+bool QTableModel::reloadDirectory()
+{
+    
+}
+
+void QTableModel::onAddRecord()
+{
+     _record << TelephoneDirectoryRecord("", "", "");
+     endResetModel();
+}
